@@ -30,14 +30,8 @@ export const envValidationSchema = Joi.object({
   REDIS_HOST: Joi.string().default('redis'),
   REDIS_PORT: Joi.number().port().default(6379),
   VIDEO_MAX_SIZE_BYTES: Joi.number().integer().min(1).default(10737418240),
-  VIDEO_PART_SIZE_BYTES: Joi.number()
-    .integer()
-    .min(5242880)
-    .default(104857600),
+  VIDEO_PART_SIZE_BYTES: Joi.number().integer().min(5242880).default(104857600),
   VIDEO_UPLOAD_URL_TTL_SECONDS: Joi.number().integer().min(60).default(21600),
-  VIDEO_PLAYBACK_URL_TTL_SECONDS: Joi.number()
-    .integer()
-    .min(60)
-    .default(21600),
+  VIDEO_PLAYBACK_URL_TTL_SECONDS: Joi.number().integer().min(60).default(21600),
   SWAGGER_ENABLED: Joi.string().valid('true', 'false').default('false'),
 });

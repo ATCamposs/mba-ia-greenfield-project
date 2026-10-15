@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress
-**SIs:** 4/16 completed
+**Status:** in progress progress progress progress progress
+**SIs:** 5/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -24,9 +24,9 @@
 - **Observations:** The dev/test DB had no migrations table (tables came from synchronize in tests): the two earlier migrations were registered as applied and only CreateVideosTable was run there; the migration was generated against a scratch database (streamtube_migrations) built from migrations only. migrations.integration-spec.ts did not drop enum types, which made it fail whenever another suite had synchronized them — now dropped in beforeAll. cleanAllTables checks that videos exists before deleting because suites that sync only their own entities never create it. Timestamps use timestamp (project convention), not timestamptz.
 
 ### SI-03.5 — Storage Service (S3-compatible)
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 8/8 passing (storage.service.integration-spec.ts 6 tests against real MinIO, storage.module.spec.ts)
+- **Observations:** MinIO rejects the AbortIncompleteMultipartUpload lifecycle rule (InvalidArgument), so StorageService logs a warning and the compose minio service sets MINIO_API_STALE_UPLOADS_EXPIRY=24h as the equivalent cleanup; real S3 accepts the rule. Presigned UploadPart URLs work with checksum WHEN_REQUIRED. Tests set S3_PUBLIC_ENDPOINT to the in-network endpoint and use the streamtube-test bucket.
 
 ### SI-03.6 — Video Domain Exceptions and Public Identifier
 - **Status:** pending
