@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
   Post,
+  Redirect,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -16,12 +18,14 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
 import { ApiErrorEnvelope } from '../common/openapi/api-error-envelope.dto';
 import { CompleteVideoUploadDto } from './dto/complete-video-upload.dto';
 import { InitVideoUploadDto } from './dto/init-video-upload.dto';
 import { RefreshPartUrlsDto } from './dto/refresh-part-urls.dto';
+import { VideoDetailsResponse } from './dto/video-details.response.dto';
 import {
   CompleteVideoUploadResponse,
   InitVideoUploadResponse,
@@ -41,13 +45,13 @@ const errorResponse = (status: number, description: string) =>
   });
 
 @ApiTags('videos')
-@ApiBearerAuth('access-token')
 @Throttle(ORCHESTRATION_THROTTLE)
 @Controller('videos')
 export class VideosController {
   constructor(private readonly videosService: VideosService) {}
 
   @Post()
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Start a video upload',
     description:
@@ -78,6 +82,7 @@ export class VideosController {
 
   @Post(':publicId/upload/parts')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Refresh part upload URLs',
     description: 'Issues fresh presigned URLs for parts of a draft upload.',
@@ -102,6 +107,7 @@ export class VideosController {
 
   @Post(':publicId/upload/complete')
   @HttpCode(HttpStatus.ACCEPTED)
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Complete a video upload',
     description:
@@ -130,6 +136,7 @@ export class VideosController {
 
   @Delete(':publicId/upload')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Abort a video upload',
     description:
@@ -149,6 +156,7 @@ export class VideosController {
 
   @Get(':publicId/status')
   @Throttle(READ_THROTTLE)
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Get the processing status of an own video',
     description:
@@ -170,6 +178,95 @@ export class VideosController {
       public_id: video.public_id,
       status: video.status,
       failure_reason: video.failure_reason,
+    };
+  }
+
+  @Public()
+  @Get(':publicId')
+  @Throttle(READ_THROTTLE)
+  @ApiOperation({
+    summary: 'Get a ready video',
+    description:
+      'Public details of a ready video, with the relative URLs to stream, download and fetch the thumbnail.',
+  })
+  @ApiResponse({ status: 200, type: VideoDetailsResponse })
+  @errorResponse(404, 'Video not found or not ready')
+  @errorResponse(429, 'Too many requests')
+  async getVideo(
+    @Param('publicId') publicId: string,
+  ): Promise<VideoDetailsResponse> {
+    const video = await this.videosService.getReadyVideo(publicId);
+    const base = `/videos/${video.public_id}`;
+    return {
+      public_id: video.public_id,
+      title: video.title,
+      duration_seconds: video.duration_seconds as number,
+      size_bytes: video.size_bytes,
+      content_type: video.content_type,
+      metadata: video.metadata,
+      created_at: video.created_at,
+      stream_url: `${base}/stream`,
+      download_url: `${base}/download`,
+      thumbnail_url: `${base}/thumbnail`,
+    };
+  }
+
+  @Public()
+  @Get(':publicId/stream')
+  @Throttle(READ_THROTTLE)
+  @Header('Cache-Control', 'no-store')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Stream a ready video',
+    description:
+      'Redirects (302) to a short-lived presigned storage URL. The storage serves HTTP Range requests (206), so playback starts without downloading the whole file.',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to the presigned URL' })
+  @errorResponse(404, 'Video not found or not ready')
+  @errorResponse(429, 'Too many requests')
+  async stream(@Param('publicId') publicId: string) {
+    return {
+      url: await this.videosService.getStreamUrl(publicId),
+      statusCode: HttpStatus.FOUND,
+    };
+  }
+
+  @Public()
+  @Get(':publicId/download')
+  @Throttle(READ_THROTTLE)
+  @Header('Cache-Control', 'no-store')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Download a ready video',
+    description:
+      'Redirects (302) to a presigned storage URL that forces an attachment download with the original file name.',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to the presigned URL' })
+  @errorResponse(404, 'Video not found or not ready')
+  @errorResponse(429, 'Too many requests')
+  async download(@Param('publicId') publicId: string) {
+    return {
+      url: await this.videosService.getDownloadUrl(publicId),
+      statusCode: HttpStatus.FOUND,
+    };
+  }
+
+  @Public()
+  @Get(':publicId/thumbnail')
+  @Throttle(READ_THROTTLE)
+  @Header('Cache-Control', 'no-store')
+  @Redirect()
+  @ApiOperation({
+    summary: 'Get the thumbnail of a ready video',
+    description: 'Redirects (302) to a presigned URL of the JPEG thumbnail.',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to the presigned URL' })
+  @errorResponse(404, 'Video not found or not ready')
+  @errorResponse(429, 'Too many requests')
+  async thumbnail(@Param('publicId') publicId: string) {
+    return {
+      url: await this.videosService.getThumbnailUrl(publicId),
+      statusCode: HttpStatus.FOUND,
     };
   }
 }

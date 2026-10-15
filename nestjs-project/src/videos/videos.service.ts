@@ -223,6 +223,39 @@ export class VideosService {
     await this.videos.delete({ id: video.id, status: VideoStatus.Draft });
   }
 
+  // Public lookup: anything that is not `ready` is indistinguishable from a missing video.
+  async getReadyVideo(publicId: string): Promise<Video> {
+    if (!isPublicId(publicId)) throw new VideoNotFoundException();
+    const video = await this.videos.findOne({
+      where: { public_id: publicId, status: VideoStatus.Ready },
+    });
+    if (!video) throw new VideoNotFoundException();
+    return video;
+  }
+
+  async getStreamUrl(publicId: string): Promise<string> {
+    const video = await this.getReadyVideo(publicId);
+    return this.storage.presignGet(video.source_key, {
+      expiresIn: this.config.playbackUrlTtlSeconds,
+    });
+  }
+
+  async getDownloadUrl(publicId: string): Promise<string> {
+    const video = await this.getReadyVideo(publicId);
+    return this.storage.presignGet(video.source_key, {
+      expiresIn: this.config.playbackUrlTtlSeconds,
+      downloadFilename: video.original_filename,
+    });
+  }
+
+  async getThumbnailUrl(publicId: string): Promise<string> {
+    const video = await this.getReadyVideo(publicId);
+    if (!video.thumbnail_key) throw new VideoNotFoundException();
+    return this.storage.presignGet(video.thumbnail_key, {
+      expiresIn: this.config.playbackUrlTtlSeconds,
+    });
+  }
+
   // Also answers "not found" for another user's video so ids cannot be probed.
   async findOwnedByPublicId(userId: string, publicId: string): Promise<Video> {
     if (!isPublicId(publicId)) throw new VideoNotFoundException();

@@ -53,6 +53,7 @@ describe('VideosService (unit)', () => {
     createMultipartUpload: jest.Mock;
     abortMultipartUpload: jest.Mock;
     presignUploadPart: jest.Mock;
+    presignGet: jest.Mock;
     completeMultipartUpload: jest.Mock;
     headObjectSize: jest.Mock;
     deleteObject: jest.Mock;
@@ -73,6 +74,7 @@ describe('VideosService (unit)', () => {
     storage = {
       createMultipartUpload: jest.fn().mockResolvedValue('upload-1'),
       abortMultipartUpload: jest.fn().mockResolvedValue(undefined),
+      presignGet: jest.fn().mockResolvedValue('https://storage/get'),
       completeMultipartUpload: jest.fn().mockResolvedValue(undefined),
       headObjectSize: jest.fn().mockResolvedValue(250 * MIB),
       deleteObject: jest.fn().mockResolvedValue(undefined),
@@ -443,6 +445,67 @@ describe('VideosService (unit)', () => {
         service.abortUpload('user-1', 'AAAAAAAAAAA'),
       ).rejects.toBeInstanceOf(VideoInvalidStatusException);
       expect(repository.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('public playback lookups', () => {
+    const ready = {
+      id: 'v1',
+      status: VideoStatus.Ready,
+      source_key: 'videos/v1/source',
+      thumbnail_key: 'videos/v1/thumbnail.jpg',
+      original_filename: 'my clip.mp4',
+    } as Video;
+
+    it('only looks up ready videos and answers 404 for anything else', async () => {
+      repository.findOne.mockResolvedValue(null);
+
+      await expect(service.getReadyVideo('AAAAAAAAAAA')).rejects.toBeInstanceOf(
+        VideoNotFoundException,
+      );
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { public_id: 'AAAAAAAAAAA', status: VideoStatus.Ready },
+      });
+      await expect(service.getReadyVideo('bad')).rejects.toBeInstanceOf(
+        VideoNotFoundException,
+      );
+    });
+
+    it('presigns the source inline for streaming and as attachment for download', async () => {
+      repository.findOne.mockResolvedValue(ready);
+
+      await service.getStreamUrl('AAAAAAAAAAA');
+      await service.getDownloadUrl('AAAAAAAAAAA');
+
+      expect(storage.presignGet).toHaveBeenNthCalledWith(
+        1,
+        'videos/v1/source',
+        {
+          expiresIn: 21600,
+        },
+      );
+      expect(storage.presignGet).toHaveBeenNthCalledWith(
+        2,
+        'videos/v1/source',
+        {
+          expiresIn: 21600,
+          downloadFilename: 'my clip.mp4',
+        },
+      );
+    });
+
+    it('presigns the thumbnail and rejects a ready video without one', async () => {
+      repository.findOne.mockResolvedValue(ready);
+      await service.getThumbnailUrl('AAAAAAAAAAA');
+      expect(storage.presignGet).toHaveBeenCalledWith(
+        'videos/v1/thumbnail.jpg',
+        { expiresIn: 21600 },
+      );
+
+      repository.findOne.mockResolvedValue({ ...ready, thumbnail_key: null });
+      await expect(
+        service.getThumbnailUrl('AAAAAAAAAAA'),
+      ).rejects.toBeInstanceOf(VideoNotFoundException);
     });
   });
 });
