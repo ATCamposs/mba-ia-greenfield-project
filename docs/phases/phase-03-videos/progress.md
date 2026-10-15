@@ -1,21 +1,21 @@
 # phase-03-videos — Progress
 
-**Status:** pending
-**SIs:** 0/16 completed
+**Status:** in progress progress progress
+**SIs:** 3/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** no tests (Infra); ffmpeg 5.1 and ffprobe verified in the rebuilt image
+- **Observations:** baseline serial run of the pre-existing suites was interrupted (machine load); full serial run happens in the DoD stage
 
 ### SI-03.2 — MinIO and Redis in Docker Compose
-- **Status:** pending
-- **Tests:** not run
+- **Status:** completed
+- **Tests:** no tests (Infra); minio and redis healthy, health endpoint 200, redis PONG
 - **Observations:** none
 
 ### SI-03.3 — Storage, Queue and Video Configuration Namespaces
-- **Status:** pending
-- **Tests:** not run
+- **Status:** completed
+- **Tests:** 10/10 passing (env.validation.integration-spec.ts, swagger.config.spec.ts); tsc exit 0
 - **Observations:** none
 
 ### SI-03.4 — Video Entity, Migration and Test Cleanup
