@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress progress progress progress
-**SIs:** 11/16 completed
+**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress
+**SIs:** 12/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -59,9 +59,9 @@
 - **Observations:** ApiBearerAuth moved from the controller class to the owner-only methods so the OpenAPI document does not mark public routes as secured. Redirects use @Redirect() with Cache-Control: no-store.
 
 ### SI-03.12 — FFmpeg Service (Probe and Thumbnail)
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 14/14 passing (probe-result.spec.ts 10 unit tests; ffmpeg.service.integration-spec.ts 4 tests with real ffmpeg/ffprobe: probe of a generated video, 1920x1080 frame scaled to 1280x720 JPEG, random bytes and audio-only rejected); tsc exit 0
+- **Observations:** Added src/test/generate-test-video.ts (lavfi testsrc, no binary fixtures) reused by later suites. HTTP reconnect options are only passed for http(s) inputs because local files reject them. Marker-based classification of ffprobe stderr decides invalid media (no retry) versus transient failures (retry).
 
 ### SI-03.13 — Video Processing Service and Queue Consumer
 - **Status:** pending
