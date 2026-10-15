@@ -37,6 +37,22 @@ services:
       - "1025:1025"
       - "8025:8025"
 
+  video-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["npm", "run", "start:worker"]
+    restart: unless-stopped
+    volumes:
+      - .:/home/node/app
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   minio:
     image: bitnamilegacy/minio:2025.7.23-debian-12-r5
     ports:

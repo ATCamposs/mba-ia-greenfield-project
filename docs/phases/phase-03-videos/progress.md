@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress progress
-**SIs:** 13/16 completed
+**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress progress progress
+**SIs:** 14/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -69,9 +69,9 @@
 - **Observations:** Confirmed ffprobe/ffmpeg read the source over a MinIO presigned HTTP URL (range requests) without a local copy. A missing source object is a permanent failure (SOURCE_MISSING, no retries) in addition to invalid media.
 
 ### SI-03.14 — Worker Entrypoint and Compose Worker Service
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 2/2 passing (worker.module.spec.ts: WorkerModule compiles with the real config schema; AppModule does not contain the processor); tsc exit 0; manual real-stack smoke from the host (see observations)
+- **Observations:** Real-stack smoke (API on :3000, worker container, MinIO on localhost:9000, Mailpit): register→confirm→login→init→PUT part to the presigned localhost URL→complete→ready in ~1s with duration 5, h264/aac metadata, stream 302→206 Content-Range, download attachment, thumbnail JPEG. With video-worker stopped the video stays processing and becomes ready after it starts. Added src/shared-modules.ts (ConfigModule + TypeORM shared by AppModule and WorkerModule); WorkerModule registers User/Channel/RefreshToken/VerificationToken because Video relates to Channel. start:worker uses ts-node --transpile-only (no watch: restart the video-worker container after code changes).
 
 ### SI-03.15 — End-to-End Upload and Processing Flow
 - **Status:** pending
