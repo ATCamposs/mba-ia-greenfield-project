@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress progress progress progress
-**SIs:** 15/16 completed
+**Status:** completed progress progress progress progress progress progress progress progress progress progress progress progress progress progress progress
+**SIs:** 16/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -79,7 +79,7 @@
 - **Observations:** The in-process worker (VideoProcessingModule) shares the test queue prefix bull-test, so it never competes with the Compose video-worker (default prefix bull). The 5 MiB part size is injected by overriding videosConfig.KEY, not by env. Added a noise option to the test video generator to get a file above 10 MiB without fixtures.
 
 ### SI-03.16 — OpenAPI Contract and Documentation
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** openapi-export.integration-spec 20/20, swagger.e2e 6/6, tsc 0
+- **Observations:** DTOs com ApiProperty, openapi.json regenerado (9 paths de video), CLAUDE.md raiz e nestjs-project atualizados. Plan test specs automaticos (plan-test-specs) nao foram usados; context7 indisponivel, library-refs baseado na documentacao oficial lida.
 

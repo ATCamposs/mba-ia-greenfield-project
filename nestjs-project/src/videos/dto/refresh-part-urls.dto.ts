@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   ArrayMinSize,
@@ -7,7 +8,11 @@ import {
 } from 'class-validator';
 
 export class RefreshPartUrlsDto {
-  /** Part numbers (1-based) that need a fresh presigned URL. */
+  @ApiProperty({
+    type: [Number],
+    example: [2, 3],
+    description: 'Part numbers (1-based) that need a fresh presigned URL.',
+  })
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(10000)
