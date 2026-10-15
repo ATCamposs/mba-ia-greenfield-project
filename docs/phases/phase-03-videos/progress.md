@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress
-**SIs:** 12/16 completed
+**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress progress
+**SIs:** 13/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -64,9 +64,9 @@
 - **Observations:** Added src/test/generate-test-video.ts (lavfi testsrc, no binary fixtures) reused by later suites. HTTP reconnect options are only passed for http(s) inputs because local files reject them. Marker-based classification of ffprobe stderr decides invalid media (no retry) versus transient failures (retry).
 
 ### SI-03.13 — Video Processing Service and Queue Consumer
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 32/32 passing in src/video-processing (service+processor unit spec 14 tests; integration against real Postgres+MinIO+ffmpeg 5 tests: ready with duration/metadata/thumbnail read over a presigned HTTP URL, idempotent replay, non-processing no-op, INVALID_MEDIA, SOURCE_MISSING; module spec); tsc exit 0
+- **Observations:** Confirmed ffprobe/ffmpeg read the source over a MinIO presigned HTTP URL (range requests) without a local copy. A missing source object is a permanent failure (SOURCE_MISSING, no retries) in addition to invalid media.
 
 ### SI-03.14 — Worker Entrypoint and Compose Worker Service
 - **Status:** pending
