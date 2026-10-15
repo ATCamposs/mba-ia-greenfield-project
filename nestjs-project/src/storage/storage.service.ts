@@ -41,15 +41,24 @@ const REJECTED_UPLOAD_CODES = [
   'EntityTooSmall',
 ];
 
-const isNotFound = (error: any): boolean =>
-  error?.name === 'NotFound' ||
-  error?.name === 'NoSuchKey' ||
-  error?.name === 'NoSuchBucket' ||
-  error?.$metadata?.httpStatusCode === 404;
+interface AwsError {
+  name?: string;
+  $metadata?: { httpStatusCode?: number };
+}
+
+const isNotFound = (error: unknown): boolean => {
+  const { name, $metadata } = (error ?? {}) as AwsError;
+  return (
+    name === 'NotFound' ||
+    name === 'NoSuchKey' ||
+    name === 'NoSuchBucket' ||
+    $metadata?.httpStatusCode === 404
+  );
+};
 
 // ASCII fallback plus RFC 5987 form so non-ASCII file names survive.
 const contentDisposition = (filename: string): string => {
-  const fallback = filename.replace(/[^\x20-\x7e]|["\;]/g, '_');
+  const fallback = filename.replace(/[^\x20-\x7e]|["\\;]/g, '_');
   return `attachment; filename="${fallback}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 };
 
@@ -166,9 +175,10 @@ export class StorageService implements OnModuleInit, OnModuleDestroy {
           },
         }),
       );
-    } catch (error: any) {
-      if (REJECTED_UPLOAD_CODES.includes(error?.name)) {
-        throw new MultipartUploadRejectedError(error.name);
+    } catch (error) {
+      const { name } = (error ?? {}) as AwsError;
+      if (name && REJECTED_UPLOAD_CODES.includes(name)) {
+        throw new MultipartUploadRejectedError(name);
       }
       throw error;
     }
@@ -183,8 +193,8 @@ export class StorageService implements OnModuleInit, OnModuleDestroy {
           UploadId: uploadId,
         }),
       );
-    } catch (error: any) {
-      if (error?.name !== 'NoSuchUpload') throw error;
+    } catch (error) {
+      if ((error as AwsError | undefined)?.name !== 'NoSuchUpload') throw error;
     }
   }
 

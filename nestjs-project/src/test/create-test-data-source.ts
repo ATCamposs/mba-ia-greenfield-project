@@ -1,12 +1,14 @@
 import { DataSource, EntitySchema, MigrationInterface } from 'typeorm';
 
+type EntityClass = new (...args: any[]) => unknown;
+
 interface TestDataSourceOptions {
   synchronize?: boolean;
   migrations?: (new () => MigrationInterface)[];
 }
 
 export function createTestDataSource(
-  entities: (Function | string | EntitySchema<any>)[],
+  entities: (EntityClass | string | EntitySchema<any>)[],
   options: TestDataSourceOptions = {},
 ): DataSource {
   const { synchronize = true, migrations } = options;
@@ -25,7 +27,7 @@ export function createTestDataSource(
 
 export async function cleanAllTables(dataSource: DataSource): Promise<void> {
   // Suites that sync only their own entities may not have created `videos`.
-  const [{ exists }] = await dataSource.query(
+  const [{ exists }] = await dataSource.query<{ exists: boolean }[]>(
     "SELECT to_regclass('public.videos') IS NOT NULL AS exists",
   );
   if (exists) await dataSource.query('DELETE FROM "videos"');

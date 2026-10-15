@@ -55,10 +55,13 @@ export interface UploadPlan {
 }
 
 function isPublicIdCollision(error: unknown): boolean {
+  if (!(error instanceof QueryFailedError)) return false;
+  const { code, detail } = error.driverError as {
+    code?: string;
+    detail?: string;
+  };
   return (
-    error instanceof QueryFailedError &&
-    (error as any).code === PG_UNIQUE_VIOLATION &&
-    String((error as any).detail ?? '').includes('public_id')
+    code === PG_UNIQUE_VIOLATION && String(detail ?? '').includes('public_id')
   );
 }
 

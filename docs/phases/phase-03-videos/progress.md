@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress progress
-**SIs:** 9/16 completed
+**Status:** in progress progress progress progress progress progress progress progress progress progress
+**SIs:** 10/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -49,9 +49,9 @@
 - **Observations:** Added failure_reason QUEUE_UNAVAILABLE: when enqueueing fails after the guarded draft→processing transition the video is marked failed instead of staying in processing forever.
 
 ### SI-03.10 — Upload Orchestration Endpoints
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 10/10 e2e passing (test/videos-upload.e2e-spec.ts against real Postgres, MinIO and Redis); tsc exit 0; npm run lint exit 0
+- **Observations:** npm run lint was already red on the base (pre-existing unsafe-any/unbound-method/require-await errors in phase 02 tests): fixed the real source errors (channels.service, test helper types) and relaxed no-unsafe-*, unbound-method and require-await for test files in eslint.config.mjs; removed an unused import/variable. Added test/helpers/video-e2e.ts (app bootstrap mirroring main.ts, register/confirm/login and direct part upload helpers). e2e jest config loads src/test/setup-env.ts.
 
 ### SI-03.11 — Public Playback, Download and Thumbnail Endpoints
 - **Status:** pending
