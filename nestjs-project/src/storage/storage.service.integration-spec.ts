@@ -8,11 +8,6 @@ import {
   StorageService,
 } from './storage.service';
 
-// Tests run inside the Compose network, so presigned URLs must target the
-// in-network storage host rather than the host-published localhost port.
-process.env.S3_PUBLIC_ENDPOINT = process.env.S3_ENDPOINT;
-process.env.S3_BUCKET = 'streamtube-test';
-
 const MIB = 1024 * 1024;
 
 describe('StorageService (integration, real MinIO)', () => {

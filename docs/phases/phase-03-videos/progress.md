@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress
-**SIs:** 6/16 completed
+**Status:** in progress progress progress progress progress progress progress
+**SIs:** 7/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -34,9 +34,9 @@
 - **Observations:** none
 
 ### SI-03.7 — Video Processing Queue (Producer)
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 31/31 passing with neighbours (video-queue.service.integration-spec.ts 2 tests on real Redis, videos.module.spec.ts); tsc exit 0
+- **Observations:** Added a QUEUE_PREFIX setting and a Jest setup file (src/test/setup-env.ts) that points tests at the streamtube-test bucket, the bull-test queue prefix and the in-network S3 endpoint, so tests and the Compose video-worker never consume each other's jobs. Queue registration lives in VideoQueueModule so the worker can reuse it.
 
 ### SI-03.8 — Upload Initialization and Ownership Lookup
 - **Status:** pending
