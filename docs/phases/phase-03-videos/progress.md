@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress
-**SIs:** 7/16 completed
+**Status:** in progress progress progress progress progress progress progress progress
+**SIs:** 8/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -39,8 +39,8 @@
 - **Observations:** Added a QUEUE_PREFIX setting and a Jest setup file (src/test/setup-env.ts) that points tests at the streamtube-test bucket, the bull-test queue prefix and the in-network S3 endpoint, so tests and the Compose video-worker never consume each other's jobs. Queue registration lives in VideoQueueModule so the worker can reuse it.
 
 ### SI-03.8 — Upload Initialization and Ownership Lookup
-- **Status:** pending
-- **Tests:** not run
+- **Status:** completed
+- **Tests:** 56/56 passing in src/videos + src/channels (videos.service.spec.ts 14 unit tests, videos.service.integration-spec.ts 3 tests against real Postgres+MinIO, channels.service.integration-spec.ts findByUserId); tsc exit 0
 - **Observations:** none
 
 ### SI-03.9 — Upload Completion and Abort
