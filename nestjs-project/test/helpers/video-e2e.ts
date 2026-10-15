@@ -3,7 +3,7 @@ import {
   ModuleMetadata,
   ValidationPipe,
 } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { ThrottlerStorage, ThrottlerStorageService } from '@nestjs/throttler';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -20,10 +20,11 @@ export interface VideoTestApp {
 // Mirrors main.ts: Test.createTestingModule does not run bootstrap().
 export async function createVideoTestApp(
   extraImports: ModuleMetadata['imports'] = [],
+  customize: (builder: TestingModuleBuilder) => TestingModuleBuilder = (b) => b,
 ): Promise<VideoTestApp> {
-  const moduleFixture = await Test.createTestingModule({
-    imports: [AppModule, ...extraImports],
-  }).compile();
+  const moduleFixture = await customize(
+    Test.createTestingModule({ imports: [AppModule, ...extraImports] }),
+  ).compile();
   const app = moduleFixture.createNestApplication<INestApplication<App>>();
   app.useGlobalPipes(
     new ValidationPipe({

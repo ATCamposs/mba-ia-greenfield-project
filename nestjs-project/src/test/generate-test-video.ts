@@ -8,13 +8,21 @@ export interface TestVideoOptions {
   size?: string;
   videoBitrate?: string;
   audio?: boolean;
+  // High-entropy video that stays large (about 13 MiB per second at 1280x720).
+  noise?: boolean;
 }
 
 // Synthetic media from ffmpeg's lavfi sources, so tests need no binary fixtures.
 export function generateTestVideo(
   options: TestVideoOptions = {},
 ): Promise<string> {
-  const { seconds = 3, size = '320x240', videoBitrate, audio = true } = options;
+  const {
+    seconds = 3,
+    size = '320x240',
+    videoBitrate,
+    audio = true,
+    noise = false,
+  } = options;
   const outputPath = join(tmpdir(), `streamtube-test-${randomUUID()}.mp4`);
   const args = [
     '-hide_banner',
@@ -23,10 +31,13 @@ export function generateTestVideo(
     '-f',
     'lavfi',
     '-i',
-    `testsrc=duration=${seconds}:size=${size}:rate=25`,
+    noise
+      ? `nullsrc=size=${size}:rate=25,geq=random(1)*255:128:128`
+      : `testsrc=duration=${seconds}:size=${size}:rate=25`,
     ...(audio
       ? ['-f', 'lavfi', '-i', `sine=frequency=440:duration=${seconds}`]
       : []),
+    ...(noise ? ['-t', String(seconds)] : []),
     '-c:v',
     'libx264',
     '-preset',

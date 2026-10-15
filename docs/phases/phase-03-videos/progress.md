@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress progress progress
-**SIs:** 14/16 completed
+**Status:** in progress progress progress progress progress progress progress progress progress progress progress progress progress progress progress
+**SIs:** 15/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -74,9 +74,9 @@
 - **Observations:** Real-stack smoke (API on :3000, worker container, MinIO on localhost:9000, Mailpit): register→confirm→login→init→PUT part to the presigned localhost URL→complete→ready in ~1s with duration 5, h264/aac metadata, stream 302→206 Content-Range, download attachment, thumbnail JPEG. With video-worker stopped the video stays processing and becomes ready after it starts. Added src/shared-modules.ts (ConfigModule + TypeORM shared by AppModule and WorkerModule); WorkerModule registers User/Channel/RefreshToken/VerificationToken because Video relates to Channel. start:worker uses ts-node --transpile-only (no watch: restart the video-worker container after code changes).
 
 ### SI-03.15 — End-to-End Upload and Processing Flow
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 3/3 e2e passing (test/videos-flow.e2e-spec.ts: ~13 MiB noise video in 3 parts straight to MinIO → ready with duration/metadata → stream 206, download attachment, thumbnail JPEG; non-media → failed INVALID_MEDIA with 404 on public routes; distinct public ids); tsc exit 0
+- **Observations:** The in-process worker (VideoProcessingModule) shares the test queue prefix bull-test, so it never competes with the Compose video-worker (default prefix bull). The 5 MiB part size is injected by overriding videosConfig.KEY, not by env. Added a noise option to the test video generator to get a file above 10 MiB without fixtures.
 
 ### SI-03.16 — OpenAPI Contract and Documentation
 - **Status:** pending
