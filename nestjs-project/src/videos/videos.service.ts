@@ -13,12 +13,17 @@ import {
   VideoFileTooLargeException,
   VideoInvalidStatusException,
   VideoNotFoundException,
+  VideoUploadIncompleteException,
 } from '../common/exceptions/domain.exception';
-import { StorageService } from '../storage/storage.service';
+import {
+  MultipartUploadRejectedError,
+  StorageService,
+} from '../storage/storage.service';
 import { VideoStatus } from './entities/video-status.enum';
 import { Video } from './entities/video.entity';
 import { generatePublicId, isPublicId } from './public-id.util';
 import { ALLOWED_VIDEO_CONTENT_TYPES } from './video-content-types';
+import { VideoQueueService } from './video-queue.service';
 
 const PG_UNIQUE_VIOLATION = '23505';
 const MAX_PUBLIC_ID_ATTEMPTS = 5;
@@ -34,6 +39,11 @@ export interface InitUploadInput {
 export interface PartUrl {
   part_number: number;
   url: string;
+}
+
+export interface CompletedPartInput {
+  part_number: number;
+  etag: string;
 }
 
 export interface UploadPlan {
@@ -64,6 +74,7 @@ export class VideosService {
     private readonly videos: Repository<Video>,
     private readonly channelsService: ChannelsService,
     private readonly storage: StorageService,
+    private readonly queue: VideoQueueService,
     @Inject(videosConfig.KEY)
     private readonly config: ConfigType<typeof videosConfig>,
   ) {}
@@ -138,6 +149,77 @@ export class VideosService {
     };
   }
 
+  async completeUpload(
+    userId: string,
+    publicId: string,
+    parts: CompletedPartInput[],
+  ): Promise<Video> {
+    const video = await this.findOwnedByPublicId(userId, publicId);
+    if (video.status !== VideoStatus.Draft) {
+      throw new VideoInvalidStatusException(video.status);
+    }
+    const ordered = this.requireAllParts(video, parts);
+
+    try {
+      await this.storage.completeMultipartUpload(
+        video.source_key,
+        video.upload_id as string,
+        ordered.map((p) => ({ partNumber: p.part_number, etag: p.etag })),
+      );
+    } catch (error) {
+      if (error instanceof MultipartUploadRejectedError) {
+        throw new VideoUploadIncompleteException(error.message);
+      }
+      throw error;
+    }
+
+    const size = await this.storage.headObjectSize(video.source_key);
+    if (size === null) {
+      throw new VideoUploadIncompleteException('Uploaded object not found');
+    }
+    if (size > this.config.maxSizeBytes) {
+      await this.storage.deleteObject(video.source_key);
+      await this.videos.update(
+        { id: video.id, status: VideoStatus.Draft },
+        {
+          status: VideoStatus.Failed,
+          failure_reason: 'FILE_TOO_LARGE',
+          upload_id: null,
+        },
+      );
+      throw new VideoFileTooLargeException(this.config.maxSizeBytes);
+    }
+
+    const moved = await this.videos.update(
+      { id: video.id, status: VideoStatus.Draft },
+      { status: VideoStatus.Processing, size_bytes: size, upload_id: null },
+    );
+    if (!moved.affected) throw new VideoInvalidStatusException(video.status);
+
+    try {
+      await this.queue.enqueueProcessing(video.id);
+    } catch (error) {
+      await this.videos.update(
+        { id: video.id, status: VideoStatus.Processing },
+        { status: VideoStatus.Failed, failure_reason: 'QUEUE_UNAVAILABLE' },
+      );
+      throw error;
+    }
+    return { ...video, status: VideoStatus.Processing, size_bytes: size };
+  }
+
+  async abortUpload(userId: string, publicId: string): Promise<void> {
+    const video = await this.findOwnedByPublicId(userId, publicId);
+    if (video.status !== VideoStatus.Draft) {
+      throw new VideoInvalidStatusException(video.status);
+    }
+    await this.storage.abortMultipartUpload(
+      video.source_key,
+      video.upload_id as string,
+    );
+    await this.videos.delete({ id: video.id, status: VideoStatus.Draft });
+  }
+
   // Also answers "not found" for another user's video so ids cannot be probed.
   async findOwnedByPublicId(userId: string, publicId: string): Promise<Video> {
     if (!isPublicId(publicId)) throw new VideoNotFoundException();
@@ -181,6 +263,23 @@ export class VideosService {
     throw new Error(
       'Public id conflict could not be resolved after max retries',
     );
+  }
+
+  private requireAllParts(
+    video: Video,
+    parts: CompletedPartInput[],
+  ): CompletedPartInput[] {
+    const partCount = this.partCount(video);
+    const ordered = [...parts].sort((a, b) => a.part_number - b.part_number);
+    const complete =
+      ordered.length === partCount &&
+      ordered.every((part, index) => part.part_number === index + 1);
+    if (!complete) {
+      throw new VideoUploadIncompleteException(
+        `Expected parts 1 to ${partCount}, each exactly once`,
+      );
+    }
+    return ordered;
   }
 
   private partCount(video: Video): number {

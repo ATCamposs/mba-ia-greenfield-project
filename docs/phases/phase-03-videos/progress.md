@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress progress progress progress
-**SIs:** 8/16 completed
+**Status:** in progress progress progress progress progress progress progress progress progress
+**SIs:** 9/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -44,9 +44,9 @@
 - **Observations:** none
 
 ### SI-03.9 — Upload Completion and Abort
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 45/45 passing in src/videos (videos.service.spec.ts incl. complete/abort branches, videos.service.integration-spec.ts 7 tests on real Postgres+MinIO+Redis); tsc exit 0
+- **Observations:** Added failure_reason QUEUE_UNAVAILABLE: when enqueueing fails after the guarded draft→processing transition the video is marked failed instead of staying in processing forever.
 
 ### SI-03.10 — Upload Orchestration Endpoints
 - **Status:** pending
