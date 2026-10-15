@@ -24,6 +24,11 @@ export function createTestDataSource(
 }
 
 export async function cleanAllTables(dataSource: DataSource): Promise<void> {
+  // Suites that sync only their own entities may not have created `videos`.
+  const [{ exists }] = await dataSource.query(
+    "SELECT to_regclass('public.videos') IS NOT NULL AS exists",
+  );
+  if (exists) await dataSource.query('DELETE FROM "videos"');
   await dataSource.query('DELETE FROM "refresh_tokens"');
   await dataSource.query('DELETE FROM "verification_tokens"');
   await dataSource.query('DELETE FROM "channels"');

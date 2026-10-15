@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress
-**SIs:** 3/16 completed
+**Status:** in progress progress progress progress
+**SIs:** 4/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -19,9 +19,9 @@
 - **Observations:** none
 
 ### SI-03.4 — Video Entity, Migration and Test Cleanup
-- **Status:** pending
-- **Tests:** not run
-- **Observations:** none
+- **Status:** completed
+- **Tests:** 35/35 passing with its neighbours (video.entity.integration-spec.ts 7 tests, videos.module.spec.ts, migrations.integration-spec.ts, channels suites)
+- **Observations:** The dev/test DB had no migrations table (tables came from synchronize in tests): the two earlier migrations were registered as applied and only CreateVideosTable was run there; the migration was generated against a scratch database (streamtube_migrations) built from migrations only. migrations.integration-spec.ts did not drop enum types, which made it fail whenever another suite had synchronized them — now dropped in beforeAll. cleanAllTables checks that videos exists before deleting because suites that sync only their own entities never create it. Timestamps use timestamp (project convention), not timestamptz.
 
 ### SI-03.5 — Storage Service (S3-compatible)
 - **Status:** pending

@@ -500,8 +500,8 @@ Table `videos`. Entity `Video` in `src/videos/entities/video.entity.ts`; `VideoS
 | duration_seconds | numeric(12,3) | nullable — mapped to `number`, set when `ready` |
 | metadata | jsonb | nullable — `{ format, bit_rate, video: { codec, width, height, frame_rate } \| null, audio: { codec, channels, sample_rate } \| null }`, set when `ready` |
 | failure_reason | varchar(64) | nullable — `INVALID_MEDIA`, `SOURCE_MISSING`, `PROCESSING_FAILED` or `FILE_TOO_LARGE`, set when `failed` |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now(), updated on change |
+| created_at | timestamp | default now() (project convention: `timestamp` without time zone) |
+| updated_at | timestamp | default now(), updated on change |
 
 **Relations:** `Channel` has many `Video` (many-to-one from `Video.channel`, cascade delete at the database level)
 **Indexes:** unique on `public_id`; index on `channel_id`
