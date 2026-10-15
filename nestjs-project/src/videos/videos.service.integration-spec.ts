@@ -31,6 +31,9 @@ import { VideosService } from './videos.service';
 const ALL_ENTITIES = [User, Channel, RefreshToken, VerificationToken, Video];
 const GIB = 1024 ** 3;
 
+// Real MinIO/ffmpeg calls: the 5 s default flakes when the host is busy.
+jest.setTimeout(30_000);
+
 describe('VideosService upload lifecycle (integration)', () => {
   let module: TestingModule;
   let service: VideosService;

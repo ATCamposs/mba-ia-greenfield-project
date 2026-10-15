@@ -10,6 +10,9 @@ import {
 
 const MIB = 1024 * 1024;
 
+// Real MinIO/ffmpeg calls: the 5 s default flakes when the host is busy.
+jest.setTimeout(30_000);
+
 describe('StorageService (integration, real MinIO)', () => {
   let module: TestingModule;
   let storage: StorageService;

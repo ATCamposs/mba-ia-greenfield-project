@@ -26,6 +26,9 @@ import { VideoProcessor } from './video.processor';
 
 const ALL_ENTITIES = [User, Channel, RefreshToken, VerificationToken, Video];
 
+// Real MinIO/ffmpeg calls: the 5 s default flakes when the host is busy.
+jest.setTimeout(30_000);
+
 describe('Video processing (integration, real Postgres + MinIO + ffmpeg)', () => {
   let module: TestingModule;
   let dataSource: DataSource;

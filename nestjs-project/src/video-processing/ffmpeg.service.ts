@@ -8,9 +8,11 @@ const THUMBNAIL_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_PROBE_OUTPUT_BYTES = 5 * 1024 * 1024;
 const STDERR_TAIL_BYTES = 4096;
 
-// Markers ffprobe prints when the bytes are not a decodable media container.
+// Markers ffprobe prints when the bytes are not a decodable media container
+// (garbage sniffed as mp3 ends in "Invalid argument" instead of "Invalid data").
 const INVALID_MEDIA_MARKERS = [
   'Invalid data found when processing input',
+  'Invalid argument',
   'moov atom not found',
   'could not find codec parameters',
   'End of file',

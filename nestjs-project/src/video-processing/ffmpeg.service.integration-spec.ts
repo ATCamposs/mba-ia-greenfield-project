@@ -7,6 +7,9 @@ import { generateTestVideo } from '../test/generate-test-video';
 import { FfmpegService } from './ffmpeg.service';
 import { InvalidMediaError } from './probe-result';
 
+// Real MinIO/ffmpeg calls: the 5 s default flakes when the host is busy.
+jest.setTimeout(30_000);
+
 describe('FfmpegService (integration, real ffmpeg/ffprobe)', () => {
   const service = new FfmpegService();
   const files: string[] = [];

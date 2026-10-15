@@ -76,7 +76,7 @@ npm run openapi:export                   # Regenerate openapi.json (needs db, re
 npm test                                 # Unit + integration tests, serial (jest --runInBand)
 npm run test:watch                       # Unit tests in watch mode
 npm run test:cov                         # Coverage report
-npm run test:e2e                         # End-to-end tests (always with --runInBand)
+npm run test:e2e                         # End-to-end tests (script already runs jest --runInBand)
 
 npx tsc --noEmit                         # Type-check (required before declaring a task done)
 npm run lint                             # ESLint with auto-fix
