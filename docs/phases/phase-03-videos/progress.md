@@ -1,7 +1,7 @@
 # phase-03-videos — Progress
 
-**Status:** in progress progress progress progress progress
-**SIs:** 5/16 completed
+**Status:** in progress progress progress progress progress progress
+**SIs:** 6/16 completed
 
 ### SI-03.1 — Dependencies, Test Script and Image Tooling
 - **Status:** completed
@@ -29,8 +29,8 @@
 - **Observations:** MinIO rejects the AbortIncompleteMultipartUpload lifecycle rule (InvalidArgument), so StorageService logs a warning and the compose minio service sets MINIO_API_STALE_UPLOADS_EXPIRY=24h as the equivalent cleanup; real S3 accepts the rule. Presigned UploadPart URLs work with checksum WHEN_REQUIRED. Tests set S3_PUBLIC_ENDPOINT to the in-network endpoint and use the streamtube-test bucket.
 
 ### SI-03.6 — Video Domain Exceptions and Public Identifier
-- **Status:** pending
-- **Tests:** not run
+- **Status:** completed
+- **Tests:** 18/18 passing (public-id.util.spec.ts, domain-exception.filter.spec.ts with 7 new mappings); tsc exit 0
 - **Observations:** none
 
 ### SI-03.7 — Video Processing Queue (Producer)
