@@ -56,7 +56,7 @@ export interface UploadPlan {
 
 function isPublicIdCollision(error: unknown): boolean {
   if (!(error instanceof QueryFailedError)) return false;
-  const { code, detail } = error.driverError as {
+  const { code, detail } = error as QueryFailedError & {
     code?: string;
     detail?: string;
   };
