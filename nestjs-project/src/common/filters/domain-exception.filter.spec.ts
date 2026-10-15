@@ -7,6 +7,13 @@ import {
   InvalidTokenException,
   TokenExpiredException,
   TokenReuseDetectedException,
+  ChannelNotFoundException,
+  InvalidPartNumberException,
+  UnsupportedVideoTypeException,
+  VideoFileTooLargeException,
+  VideoInvalidStatusException,
+  VideoNotFoundException,
+  VideoUploadIncompleteException,
 } from '../exceptions/domain.exception';
 
 describe('DomainExceptionFilter', () => {
@@ -95,6 +102,33 @@ describe('DomainExceptionFilter', () => {
     expect(mockJson).toHaveBeenCalledWith({
       statusCode: 401,
       error: 'TOKEN_REUSE_DETECTED',
+      message: expect.any(String),
+    });
+  });
+
+  it.each([
+    [new VideoNotFoundException(), 404, 'VIDEO_NOT_FOUND'],
+    [new ChannelNotFoundException(), 404, 'CHANNEL_NOT_FOUND'],
+    [new VideoInvalidStatusException('ready'), 409, 'VIDEO_INVALID_STATUS'],
+    [new VideoFileTooLargeException(10), 413, 'VIDEO_FILE_TOO_LARGE'],
+    [
+      new UnsupportedVideoTypeException('image/png'),
+      415,
+      'UNSUPPORTED_VIDEO_TYPE',
+    ],
+    [
+      new VideoUploadIncompleteException('missing parts'),
+      422,
+      'VIDEO_UPLOAD_INCOMPLETE',
+    ],
+    [new InvalidPartNumberException(3), 400, 'INVALID_PART_NUMBER'],
+  ])('maps %p to its status and error code', (exception, status, code) => {
+    filter.catch(exception, mockHost);
+
+    expect(mockStatus).toHaveBeenCalledWith(status);
+    expect(mockJson).toHaveBeenCalledWith({
+      statusCode: status,
+      error: code,
       message: expect.any(String),
     });
   });

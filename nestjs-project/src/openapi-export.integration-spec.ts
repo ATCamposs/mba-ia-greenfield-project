@@ -128,4 +128,52 @@ describe('exportSpec (integration)', () => {
       }
     }
   });
+
+  describe('videos contract', () => {
+    type Operation = Record<string, unknown>;
+    const paths = () =>
+      document.paths as Record<string, Record<string, Operation>>;
+
+    it.each([
+      ['post', '/videos'],
+      ['post', '/videos/{publicId}/upload/parts'],
+      ['post', '/videos/{publicId}/upload/complete'],
+      ['delete', '/videos/{publicId}/upload'],
+      ['get', '/videos/{publicId}/status'],
+      ['get', '/videos/{publicId}'],
+      ['get', '/videos/{publicId}/stream'],
+      ['get', '/videos/{publicId}/download'],
+      ['get', '/videos/{publicId}/thumbnail'],
+    ])('documents %s %s with the videos tag', (method, path) => {
+      const operation = paths()[path]?.[method];
+
+      expect(operation).toBeDefined();
+      expect(operation.tags).toEqual(['videos']);
+      expect((operation.summary as string).length).toBeGreaterThan(0);
+    });
+
+    it('marks only the owner routes as secured and the playback routes as public', () => {
+      const secured = (path: string, method: string) =>
+        Array.isArray(paths()[path][method].security);
+
+      expect(secured('/videos', 'post')).toBe(true);
+      expect(secured('/videos/{publicId}/status', 'get')).toBe(true);
+      expect(secured('/videos/{publicId}', 'get')).toBe(false);
+      expect(secured('/videos/{publicId}/stream', 'get')).toBe(false);
+    });
+
+    it('documents the request schema of the upload initialization', () => {
+      const schemas = (document.components as Record<string, any>).schemas;
+
+      expect(Object.keys(schemas.InitVideoUploadDto.properties)).toEqual([
+        'filename',
+        'content_type',
+        'size_bytes',
+        'title',
+      ]);
+      expect(schemas.InitVideoUploadResponse.properties).toHaveProperty(
+        'parts',
+      );
+    });
+  });
 });
